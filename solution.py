@@ -224,14 +224,83 @@ def reduce_puzzle(sudoku):
     return sudoku
 
 
+def sudoku_is_solved(sudoku):
+    """
+    Args:
+        sudoku(dict): Partially or totally solved sudoku puzzle
+
+    Returns:
+        bool: True if puzzle is solved, False otherwise
+
+    """
+
+    return all(map(lambda box: len(sudoku[box]) == 1, BOXES))
+
+
+def find_best_candidate_box(sudoku):
+    """
+    Args:
+        sudoku (dict): Partially solved Sudoku puzzle
+
+    Returns:
+        str: Box that is the best candidate to solve the puzzle
+
+    """
+
+    unsolved_box = lambda box: len(sudoku[box]) > 1
+    calculate_box_length = lambda box: (len(sudoku[box]), box)
+
+    length, box = min(map(calculate_box_length, filter(unsolved_box, BOXES)))
+
+    return box
+
+
+def create_possibility_tree(sudoku):
+    """
+    Args:
+        sudoku (dict): Partially solved Sudoku puzzle
+
+    Returns:
+        list: Possible solutions picking the best current box
+
+    """
+
+    best_box = find_best_candidate_box(sudoku)
+    paths = []
+
+    for best_current_choice in sudoku[best_box]:
+        new_sudoku = sudoku.copy()
+        new_sudoku[best_box] = best_current_choice
+        paths.append(new_sudoku)
+
+    return paths
+
+
 def search(sudoku):
     """
     Args:
         sudoku(dict): Puzzle
 
+    Returns:
+        dict: Partially or totally solved sudoku
+
     """
 
-    pass
+    sudoku = reduce_puzzle(sudoku)
+
+    if sudoku is False:
+        return False
+
+    if sudoku_is_solved(sudoku):
+        return sudoku
+
+    for tree in create_possibility_tree(sudoku):
+        attempt = search(tree)
+
+        if attempt:
+            return attempt
+
+    return False
 
 
 def solve(grid):
@@ -248,6 +317,8 @@ def solve(grid):
         dict: The dictionary representation of the final sudoku grid. False if no solution exists.
 
     """
+
+    return search(grid_values(grid))
 
 
 def main():
