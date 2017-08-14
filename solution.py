@@ -168,6 +168,33 @@ def only_choice(sudoku):
     return sudoku
 
 
+def count_solved_boxes(sudoku):
+    """
+    Args:
+        sudoku(dict): Partially or totally solved sudoku puzzle
+
+    Returns:
+        int: Number of boxes with a valid solution
+
+    """
+
+    return len({box: values for box, values in sudoku.items() if len(values) == 1})
+
+
+def sudoku_has_solution(sudoku):
+    """
+    Args:
+        sudoku(dict): Partially or totally solved sudoku puzzle
+
+    Returns:
+        bool: False if at least one box has not a solution, True otherwise
+
+    """
+
+    unsolvable_boxes = {box: values for box, values in sudoku.items() if len(values) == 0}
+    return len(unsolvable_boxes) == 0
+
+
 def reduce_puzzle(sudoku):
     """
     Reduce number of unsolved boxes in the sudoku
@@ -180,7 +207,21 @@ def reduce_puzzle(sudoku):
 
     """
 
-    pass
+    has_changed = False
+
+    while not has_changed:
+        solved_values_before = count_solved_boxes(sudoku)
+
+        sudoku = eliminate(sudoku)
+        sudoku = only_choice(sudoku)
+        solved_values_after = count_solved_boxes(sudoku)
+
+        if not sudoku_has_solution(sudoku):
+            return False
+
+        has_changed = solved_values_before == solved_values_after
+
+    return sudoku
 
 
 def search(sudoku):
