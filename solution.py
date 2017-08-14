@@ -1,5 +1,16 @@
 assignments = []
 
+DIAGONAL_SUDOKU = ''.join([
+    '2........',
+    '.....62..',
+    '..1....7.',
+    '..6..8...',
+    '3...9...7',
+    '...6..4..',
+    '.4....8..',
+    '..52.....',
+    '........3'
+])
 
 def assign_value(values, box, value):
     """
@@ -154,9 +165,13 @@ def solve(grid):
 
     """
 
-if __name__ == '__main__':
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+
+def main():
+    """
+    Run Sudoku solver program
+    """
+
+    display(solve(DIAGONAL_SUDOKU))
 
     try:
         from visualize import visualize_assignments
@@ -165,6 +180,9 @@ if __name__ == '__main__':
     except SystemExit:
         pass
 
-    except:
+    except ModuleNotFoundError:
         print('We could not visualize your board due to a pygame issue.')
         print('Not a problem! It is not a requirement.')
+
+if __name__ == '__main__':
+    main()
