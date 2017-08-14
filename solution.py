@@ -148,7 +148,16 @@ def only_choice(sudoku):
         dict: Sudoku after filling in only choices.
 
     """
-    pass
+
+    for unit in UNIT_LIST:
+        for digit in COLUMNS:
+            box_with_digit = lambda box: digit in sudoku[box]
+            digit_places = [_ for _ in filter(box_with_digit, unit)]
+
+            if len(digit_places) == 1:
+                sudoku[digit_places[0]] = digit
+
+    return sudoku
 
 
 def reduce_puzzle(sudoku):
