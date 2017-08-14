@@ -105,7 +105,17 @@ def display(sudoku):
 
     """
 
-    pass
+    width = 1 + max(map(lambda box: len(sudoku[box]), BOXES))
+    line = '+'.join(['-'*(width*3)]*3)
+
+    for row in ROWS:
+        puzzle = [sudoku[row + col].center(width) + ('|' if col in '36' else '') for col in COLUMNS]
+        print(''.join(puzzle))
+
+        if row in 'CF':
+            print(line)
+
+    return
 
 
 def eliminate(sudoku):
