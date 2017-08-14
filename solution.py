@@ -1,4 +1,33 @@
+from itertools import product
+
+
+def cross(rows, cols):
+    """
+    Cross product of elements in rows and elements in cols.
+
+    Args:
+        rows (list): a list of rows
+        cols (list): a list of columns
+
+    Returns:
+        dict: vectorial product of rows x columns
+
+    """
+
+    return ['%s%s' % item for item in product(rows, cols)]
+
+
 assignments = []
+
+COLUMNS = '123456789'
+ROWS = 'ABCDEFGHI'
+BOXES = cross(ROWS, COLUMNS)
+ROW_UNITS = [cross(r, COLUMNS) for r in ROWS]
+COLUMN_UNITS = [cross(ROWS, c) for c in COLUMNS]
+SQUARE_UNITS = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+UNIT_LIST = ROW_UNITS + COLUMN_UNITS + SQUARE_UNITS
+UNITS = dict((s, [u for u in UNIT_LIST if s in u]) for s in BOXES)
+PEERS = dict((s, set(sum(UNITS[s], [])) - set([s])) for s in BOXES)
 
 DIAGONAL_SUDOKU = ''.join([
     '2........',
@@ -11,6 +40,7 @@ DIAGONAL_SUDOKU = ''.join([
     '..52.....',
     '........3'
 ])
+
 
 def assign_value(values, box, value):
     """
@@ -42,22 +72,6 @@ def naked_twins(sudoku):
 
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
-
-
-def cross(rows, cols):
-    """
-    Cross product of elements in rows and elements in cols.
-
-    Args:
-        rows (list): a list of rows
-        cols (list): a list of columns
-
-
-    Returns:
-        dict: vectorial product of rows x columns
-
-    """
-    pass
 
 
 def grid_values(grid):
