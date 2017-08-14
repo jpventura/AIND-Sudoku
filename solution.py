@@ -91,7 +91,9 @@ def grid_values(grid):
 
     """
 
-    pass
+    assert len(grid) == 81
+    sudoku = dict(zip(BOXES, grid))
+    return {key: val.replace('.', COLUMNS) for key, val in sudoku.items()}
 
 
 def display(sudoku):
