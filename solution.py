@@ -131,7 +131,15 @@ def eliminate(sudoku):
 
     """
 
-    pass
+    solved_values = filter(lambda box: len(sudoku[box]) == 1, sudoku.keys())
+
+    for box in solved_values:
+        digit = sudoku[box]
+
+        for peer in PEERS[box]:
+            sudoku[peer] = sudoku[peer].replace(digit, '')
+
+    return sudoku
 
 
 def only_choice(sudoku):
