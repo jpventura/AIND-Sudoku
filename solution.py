@@ -1,4 +1,4 @@
-from itertools import product
+from itertools import combinations, product
 
 
 def cross(rows, cols):
@@ -58,6 +58,51 @@ def assign_value(values, box, value):
     return values
 
 
+def find_all_naked_twins(sudoku):
+    """
+    Given a sudoku, return a list or pair where each pair are
+    considered naked twins in the current puzzle state
+
+    Args:
+        sudoku (dict): Partially or totally solved sudoku puzzle
+
+    Results:
+        list: All sibling twins grouped in pairs
+
+    """
+
+    possible_twins = {box: values for box, values in sudoku.items() if len(values) == 2}.keys()
+    possible_sibling_twins = map(tuple, map(sorted, combinations(possible_twins, 2)))
+
+    sibling_twins = filter(lambda twin: sudoku[twin[0]] == sudoku[twin[1]], possible_sibling_twins)
+    sibling_twins = filter(lambda twin: twin[0] in PEERS[twin[1]], sibling_twins)
+    sibling_twins = filter(lambda twin: twin[1] in PEERS[twin[0]], sibling_twins)
+
+    return sibling_twins
+
+
+def remove_twin_from_peers(sudoku, pair):
+    """
+    Given a pair of naked twin boxes, remove from their peers the
+    digits addressed by those boxes
+
+    Args:
+        sudoku (dict): Partially or totally solved sudoku puzzle
+        pair (list): Two boxes that are naked twins
+
+    Results:
+        dict: Partially or totally solved puzzle
+
+    """
+
+    for box in PEERS[pair[0]].intersection(PEERS[pair[1]]):
+        digit_pair = sudoku[pair[0]]
+        sudoku[box] = sudoku[box].replace(digit_pair[0], '')
+        sudoku[box] = sudoku[box].replace(digit_pair[1], '')
+
+    return sudoku
+
+
 def naked_twins(sudoku):
     """
     Eliminate values using the naked twins strategy.
@@ -71,7 +116,13 @@ def naked_twins(sudoku):
     """
 
     # Find all instances of naked twins
+    naked_twins_instances = find_all_naked_twins(sudoku)
+
     # Eliminate the naked twins as possibilities for their peers
+    for pair in naked_twins_instances:
+        remove_twin_from_peers(sudoku, pair)
+
+    return sudoku
 
 
 def grid_values(grid):
@@ -213,6 +264,7 @@ def reduce_puzzle(sudoku):
         solved_values_before = count_solved_boxes(sudoku)
 
         sudoku = eliminate(sudoku)
+        sudoku = naked_twins(sudoku)
         sudoku = only_choice(sudoku)
         solved_values_after = count_solved_boxes(sudoku)
 
