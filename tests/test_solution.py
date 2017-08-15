@@ -94,5 +94,26 @@ class TestDiagonalSudoku(unittest.TestCase):
     def test_solve(self):
         self.assertEqual(solution.solve(self.diagonal_grid), self.solved_diag_sudoku)
 
+
+
+class TestHardDiagonalSudoku(unittest.TestCase):
+    diagonal_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
+
+    solved_diag_sudoku = {
+        'A1': '9', 'A2': '6', 'A3': '1', 'A4': '3', 'A5': '5', 'A6': '4', 'A7': '2', 'A8': '8', 'A9': '7',
+        'B1': '8', 'B2': '3', 'B3': '5', 'B4': '2', 'B5': '7', 'B6': '6', 'B7': '1', 'B8': '4', 'B9': '9',
+        'C1': '2', 'C2': '7', 'C3': '4', 'C4': '8', 'C5': '9', 'C6': '1', 'C7': '3', 'C8': '6', 'C9': '5',
+        'D1': '4', 'D2': '2', 'D3': '7', 'D4': '1', 'D5': '3', 'D6': '8', 'D7': '9', 'D8': '5', 'D9': '6',
+        'E1': '5', 'E2': '8', 'E3': '3', 'E4': '9', 'E5': '6', 'E6': '2', 'E7': '7', 'E8': '1', 'E9': '4',
+        'F1': '6', 'F2': '1', 'F3': '9', 'F4': '5', 'F5': '4', 'F6': '7', 'F7': '8', 'F8': '3', 'F9': '2',
+        'G1': '3', 'G2': '4', 'G3': '2', 'G4': '6', 'G5': '8', 'G6': '9', 'G7': '5', 'G8': '7', 'G9': '1',
+        'H1': '7', 'H2': '9', 'H3': '8', 'H4': '4', 'H5': '1', 'H6': '5', 'H7': '6', 'H8': '2', 'H9': '3',
+        'I1': '1', 'I2': '5', 'I3': '6', 'I4': '7', 'I5': '2', 'I6': '3', 'I7': '4', 'I8': '9', 'I9': '8'
+    }
+
+    def test_solve(self):
+        self.assertEqual(solution.solve(self.diagonal_grid), self.solved_diag_sudoku)
+
+
 if __name__ == '__main__':
     unittest.main()
