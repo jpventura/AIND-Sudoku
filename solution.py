@@ -99,8 +99,14 @@ def remove_twin_from_peers(sudoku, pair):
 
     for box in PEERS[pair[0]].intersection(PEERS[pair[1]]):
         digit_pair = sudoku[pair[0]]
-        sudoku[box] = sudoku[box].replace(digit_pair[0], '')
-        sudoku[box] = sudoku[box].replace(digit_pair[1], '')
+
+        # FIXME
+        # This safety is should not be required, because 'find_all_naked_twins'
+        # only accepts box with 2 digits. But, without it, this method throws
+        # IndexError exception because the string has only 1 digit.
+        if len(digit_pair) == 2:
+            sudoku[box] = sudoku[box].replace(digit_pair[0], '')
+            sudoku[box] = sudoku[box].replace(digit_pair[1], '')
 
     return sudoku
 
