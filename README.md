@@ -3,7 +3,9 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+A: Given two boxes that are considered _naked twins_ for a partially solved sudoku puzzle. We can create a second **elimination strategy** where, for each peer of the provided twins, we eliminate the digits belonging to these peers.
+
+The **naked twin strategy** becomes another **constrain**, avoiding the investigation os possilibity trees without a solution (during `search` execution). Consequently the `solve` method always converge and in a faster pace.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
