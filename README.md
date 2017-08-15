@@ -9,7 +9,7 @@ The **naked twin strategy** becomes another **constrain**, avoiding the investig
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: Both ascending and descending diagonals can be considered units. Consequently, when the elimination strategies are executed on a box which belongs to the diagonals, the elimination becomes even more restrictive increasing the search algorithm conversion.
 
 ### Install
 
