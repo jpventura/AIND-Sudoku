@@ -1,4 +1,47 @@
+from itertools import combinations, product
+
+
+def cross(rows, cols):
+    """
+    Cross product of elements in rows and elements in cols.
+
+    Args:
+        rows (list): a list of rows
+        cols (list): a list of columns
+
+    Returns:
+        dict: vectorial product of rows x columns
+
+    """
+
+    return ['%s%s' % item for item in product(rows, cols)]
+
+
 assignments = []
+
+COLUMNS = '123456789'
+ROWS = 'ABCDEFGHI'
+BOXES = cross(ROWS, COLUMNS)
+ROW_UNITS = [cross(r, COLUMNS) for r in ROWS]
+COLUMN_UNITS = [cross(ROWS, c) for c in COLUMNS]
+SQUARE_UNITS = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+DIAGONAL_UNITS = [['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9'], ['A9', 'B8', 'C7', 'D6', 'E5', 'F4', 'G3', 'H2', 'I1']]
+UNIT_LIST = ROW_UNITS + COLUMN_UNITS + SQUARE_UNITS + DIAGONAL_UNITS
+UNITS = dict((s, [u for u in UNIT_LIST if s in u]) for s in BOXES)
+PEERS = dict((s, set(sum(UNITS[s], [])) - set([s])) for s in BOXES)
+
+
+DIAGONAL_SUDOKU = ''.join([
+    '2........',
+    '.....62..',
+    '..1....7.',
+    '..6..8...',
+    '3...9...7',
+    '...6..4..',
+    '.4....8..',
+    '..52.....',
+    '........3'
+])
 
 
 def assign_value(values, box, value):
@@ -17,6 +60,57 @@ def assign_value(values, box, value):
     return values
 
 
+def find_all_naked_twins(sudoku):
+    """
+    Given a sudoku, return a list or pair where each pair are
+    considered naked twins in the current puzzle state
+
+    Args:
+        sudoku (dict): Partially or totally solved sudoku puzzle
+
+    Results:
+        list: All sibling twins grouped in pairs
+
+    """
+
+    possible_twins = {box: values for box, values in sudoku.items() if len(values) == 2}.keys()
+    possible_sibling_twins = map(tuple, map(sorted, combinations(possible_twins, 2)))
+
+    sibling_twins = filter(lambda twin: sudoku[twin[0]] == sudoku[twin[1]], possible_sibling_twins)
+    sibling_twins = filter(lambda twin: twin[0] in PEERS[twin[1]], sibling_twins)
+    sibling_twins = filter(lambda twin: twin[1] in PEERS[twin[0]], sibling_twins)
+
+    return sibling_twins
+
+
+def remove_twin_from_peers(sudoku, pair):
+    """
+    Given a pair of naked twin boxes, remove from their peers the
+    digits addressed by those boxes
+
+    Args:
+        sudoku (dict): Partially or totally solved sudoku puzzle
+        pair (list): Two boxes that are naked twins
+
+    Results:
+        dict: Partially or totally solved puzzle
+
+    """
+
+    for box in PEERS[pair[0]].intersection(PEERS[pair[1]]):
+        digit_pair = sudoku[pair[0]]
+
+        # FIXME
+        # This safety is should not be required, because 'find_all_naked_twins'
+        # only accepts box with 2 digits. But, without it, this method throws
+        # IndexError exception because the string has only 1 digit.
+        if len(digit_pair) == 2:
+            sudoku[box] = sudoku[box].replace(digit_pair[0], '')
+            sudoku[box] = sudoku[box].replace(digit_pair[1], '')
+
+    return sudoku
+
+
 def naked_twins(sudoku):
     """
     Eliminate values using the naked twins strategy.
@@ -30,23 +124,13 @@ def naked_twins(sudoku):
     """
 
     # Find all instances of naked twins
+    naked_twins_instances = find_all_naked_twins(sudoku)
+
     # Eliminate the naked twins as possibilities for their peers
+    for pair in naked_twins_instances:
+        remove_twin_from_peers(sudoku, pair)
 
-
-def cross(rows, cols):
-    """
-    Cross product of elements in rows and elements in cols.
-
-    Args:
-        rows (list): a list of rows
-        cols (list): a list of columns
-
-
-    Returns:
-        dict: vectorial product of rows x columns
-
-    """
-    pass
+    return sudoku
 
 
 def grid_values(grid):
@@ -66,7 +150,9 @@ def grid_values(grid):
 
     """
 
-    pass
+    assert len(grid) == 81
+    sudoku = dict(zip(BOXES, grid))
+    return {key: val.replace('.', COLUMNS) for key, val in sudoku.items()}
 
 
 def display(sudoku):
@@ -78,7 +164,17 @@ def display(sudoku):
 
     """
 
-    pass
+    width = 1 + max(map(lambda box: len(sudoku[box]), BOXES))
+    line = '+'.join(['-'*(width*3)]*3)
+
+    for row in ROWS:
+        puzzle = [sudoku[row + col].center(width) + ('|' if col in '36' else '') for col in COLUMNS]
+        print(''.join(puzzle))
+
+        if row in 'CF':
+            print(line)
+
+    return
 
 
 def eliminate(sudoku):
@@ -94,7 +190,15 @@ def eliminate(sudoku):
 
     """
 
-    pass
+    solved_values = filter(lambda box: len(sudoku[box]) == 1, sudoku.keys())
+
+    for box in solved_values:
+        digit = sudoku[box]
+
+        for peer in PEERS[box]:
+            sudoku[peer] = sudoku[peer].replace(digit, '')
+
+    return sudoku
 
 
 def only_choice(sudoku):
@@ -111,7 +215,43 @@ def only_choice(sudoku):
         dict: Sudoku after filling in only choices.
 
     """
-    pass
+
+    for unit in UNIT_LIST:
+        for digit in COLUMNS:
+            box_with_digit = lambda box: digit in sudoku[box]
+            digit_places = [_ for _ in filter(box_with_digit, unit)]
+
+            if len(digit_places) == 1:
+                sudoku[digit_places[0]] = digit
+
+    return sudoku
+
+
+def count_solved_boxes(sudoku):
+    """
+    Args:
+        sudoku(dict): Partially or totally solved sudoku puzzle
+
+    Returns:
+        int: Number of boxes with a valid solution
+
+    """
+
+    return len({box: values for box, values in sudoku.items() if len(values) == 1})
+
+
+def sudoku_has_solution(sudoku):
+    """
+    Args:
+        sudoku(dict): Partially or totally solved sudoku puzzle
+
+    Returns:
+        bool: False if at least one box has not a solution, True otherwise
+
+    """
+
+    unsolvable_boxes = {box: values for box, values in sudoku.items() if len(values) == 0}
+    return len(unsolvable_boxes) == 0
 
 
 def reduce_puzzle(sudoku):
@@ -126,7 +266,74 @@ def reduce_puzzle(sudoku):
 
     """
 
-    pass
+    has_changed = False
+
+    while not has_changed:
+        solved_values_before = count_solved_boxes(sudoku)
+
+        sudoku = eliminate(sudoku)
+        sudoku = naked_twins(sudoku)
+        sudoku = only_choice(sudoku)
+        solved_values_after = count_solved_boxes(sudoku)
+
+        if not sudoku_has_solution(sudoku):
+            return False
+
+        has_changed = solved_values_before == solved_values_after
+
+    return sudoku
+
+
+def sudoku_is_solved(sudoku):
+    """
+    Args:
+        sudoku(dict): Partially or totally solved sudoku puzzle
+
+    Returns:
+        bool: True if puzzle is solved, False otherwise
+
+    """
+
+    return all(map(lambda box: len(sudoku[box]) == 1, BOXES))
+
+
+def find_best_candidate_box(sudoku):
+    """
+    Args:
+        sudoku (dict): Partially solved Sudoku puzzle
+
+    Returns:
+        str: Box that is the best candidate to solve the puzzle
+
+    """
+
+    unsolved_box = lambda box: len(sudoku[box]) > 1
+    calculate_box_length = lambda box: (len(sudoku[box]), box)
+
+    length, box = min(map(calculate_box_length, filter(unsolved_box, BOXES)))
+
+    return box
+
+
+def create_possibility_tree(sudoku):
+    """
+    Args:
+        sudoku (dict): Partially solved Sudoku puzzle
+
+    Returns:
+        list: Possible solutions picking the best current box
+
+    """
+
+    best_box = find_best_candidate_box(sudoku)
+    paths = []
+
+    for best_current_choice in sudoku[best_box]:
+        new_sudoku = sudoku.copy()
+        new_sudoku[best_box] = best_current_choice
+        paths.append(new_sudoku)
+
+    return paths
 
 
 def search(sudoku):
@@ -134,9 +341,26 @@ def search(sudoku):
     Args:
         sudoku(dict): Puzzle
 
+    Returns:
+        dict: Partially or totally solved sudoku
+
     """
 
-    pass
+    sudoku = reduce_puzzle(sudoku)
+
+    if sudoku is False:
+        return False
+
+    if sudoku_is_solved(sudoku):
+        return sudoku
+
+    for tree in create_possibility_tree(sudoku):
+        attempt = search(tree)
+
+        if attempt:
+            return attempt
+
+    return False
 
 
 def solve(grid):
@@ -154,9 +378,15 @@ def solve(grid):
 
     """
 
-if __name__ == '__main__':
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+    return search(grid_values(grid))
+
+
+def main():
+    """
+    Run Sudoku solver program
+    """
+
+    display(solve(DIAGONAL_SUDOKU))
 
     try:
         from visualize import visualize_assignments
@@ -165,6 +395,9 @@ if __name__ == '__main__':
     except SystemExit:
         pass
 
-    except:
+    except ModuleNotFoundError:
         print('We could not visualize your board due to a pygame issue.')
         print('Not a problem! It is not a requirement.')
+
+if __name__ == '__main__':
+    main()
